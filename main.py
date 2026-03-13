@@ -13,27 +13,25 @@ def main() -> None:
     with open("players.json", "r") as players_file:
         players = json.load(players_file)
     for player_name, other in players.items():
-        need_add_skill = other["race"]["skills"]
+        need_add_skill = other.get("race", {}).get("skills", None)
+        race = Race.objects.get_or_create(
+            name=other.get("race", {}).get("name", None),
+            description=other.get("race", {}).get("description", None))
         for skill in need_add_skill:
-            test = Race.objects.get_or_create(
-                name=other["race"]["name"],
-                description=other["race"]["description"])
             Skill.objects.get_or_create(
-                name=skill["name"],
-                bonus=skill["bonus"],
-                race_id=test[0].id
+                name=skill.get("name", None),
+                bonus=skill.get("bonus", None),
+                race_id=race[0].id
             )
         Player.objects.create(
             nickname=player_name,
-            email=other["email"],
-            bio=other["bio"],
-            race=Race.objects.get_or_create(
-                name=other["race"]["name"],
-                description=other["race"]["description"])[0],
+            email=other.get("email", None),
+            bio=other.get("bio", None),
+            race=race[0],
             guild=Guild.objects.get_or_create(
-                name=other["guild"]["name"],
-                description=other["guild"]["description"]
-            )[0] if other["guild"] is not None else None
+                name=other.get("guild", {}).get("name", None),
+                description=other.get("guild", {}).get("description", None)
+            )[0] if other.get("guild", None) is not None else None
         )
 
 
